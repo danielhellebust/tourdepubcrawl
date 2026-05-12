@@ -1,6 +1,13 @@
 FROM node:20-alpine
-
 WORKDIR /app
+
+# Add these lines to accept build arguments
+ARG VITE_AUTH0_DOMAIN
+ARG VITE_AUTH0_CLIENT_ID
+
+# Set them as environment variables for the build process
+ENV VITE_AUTH0_DOMAIN=$VITE_AUTH0_DOMAIN
+ENV VITE_AUTH0_CLIENT_ID=$VITE_AUTH0_CLIENT_ID
 
 COPY package*.json ./
 RUN npm install
@@ -8,8 +15,5 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Install a simple static file server
 RUN npm install -g serve
-
-# Serve the 'dist' folder on the port provided by Cloud Run
 CMD ["sh", "-c", "serve -s dist -l $PORT"]
