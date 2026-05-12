@@ -78,10 +78,9 @@ const DEMO_USERS = [
   "Robert Bos", "Per Christian Hoel", "Geir Edvardsen", "Einar Lunde",
   "Niksa Kacic", "Per Christian Riis-Ulsbøl", "Negar Nourielmi", "Alexander Bergsmo",
   "Lindi Coetzer", "Sudheesh Kanhangad", "Asle Pettersen", "Ole Mathisen",
-  "Dag Rougthvedt", "Leif Erich", "Joseph Udie Abanyam"
+  "Dag Rougthvedt", "Leif Erich", "Joseph Udie Abanyam", "John DOE1","John DOE2", "John DOE3", "John DOE4"
 ]
 
-// Custom questions per pub
 const QUIZ_QUESTIONS: Record<string, string> = {
   'Postkontoret': 'Who is most likely to accidentally "Reply All" to a company-wide email?',
   'Bydelskroa': 'Who secretly judges everyone else’s lunch choices?',
@@ -282,46 +281,45 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
   const extStats = stats as (StatsResponse & { quiz_stats?: QuizStat[], users?: UserMapState[] }) | null
 
   return (
-    <AppShell header={{ height: 64 }} padding="md">
+    <AppShell header={{ height: 50 }} padding="xs">
       <AppShell.Header>
-        <Container h="100%" size="sm" style={{ display: 'flex', alignItems: 'center' }}>
-          <Group justify="space-between" w="100%">
-            <Title order={3}>Tour de Pub Crawl</Title>
-            <Group gap="xs">{headerActions}</Group>
+        <Container h="100%" size="sm" px="xs" style={{ display: 'flex', alignItems: 'center' }}>
+          <Group justify="space-between" w="100%" wrap="nowrap">
+            <Title order={4} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Pub Crawl</Title>
+            <Group gap="xs" wrap="nowrap">{headerActions}</Group>
           </Group>
         </Container>
       </AppShell.Header>
 
       <AppShell.Main>
-        <Container size="sm">
-          <Tabs value={activeTab} onChange={setActiveTab}>
-            <Tabs.List>
+        <Container size="sm" px={0}>
+          <Tabs value={activeTab} onChange={setActiveTab} variant="pills" color="yellow">
+            <Tabs.List grow>
               <Tabs.Tab value="Kart">Map</Tabs.Tab>
               <Tabs.Tab value="Stats">Stats</Tabs.Tab>
-              <Tabs.Tab value="Chat">Chat</Tabs.Tab>
               <Tabs.Tab value="Post">Post</Tabs.Tab>
+              <Tabs.Tab value="Chat">Chat</Tabs.Tab>
               <Tabs.Tab value="Profile">Profile</Tabs.Tab>
-              <Tabs.Tab value="Routes">Routes</Tabs.Tab>
             </Tabs.List>
 
-            <Tabs.Panel value="Kart" pt="md">
+            <Tabs.Panel value="Kart" pt="xs">
               {activeTab === 'Kart' && (
-                <Stack gap="sm">
+                <Stack gap="xs">
                   {!routeId && (
-                    <Card withBorder>
+                    <Card withBorder padding="xs">
                       <Stack gap="xs">
-                        <Text fw={600}>Velg en rute for å bli med</Text>
-                        <Select placeholder="Choose route" data={routes.map((r) => ({ value: r.id, label: `${r.name} (${r.pubs.length})` }))} value={routeJoinDraft} onChange={(val) => setRouteJoinDraft(val || '')} searchable />
-                        <Group justify="flex-end"><Button onClick={joinSelectedRoute}>Join route</Button></Group>
+                        <Text fw={600} size="sm">Velg en rute for å bli med</Text>
+                        <Select size="sm" placeholder="Choose route" data={routes.map((r) => ({ value: r.id, label: `${r.name} (${r.pubs.length})` }))} value={routeJoinDraft} onChange={(val) => setRouteJoinDraft(val || '')} searchable />
+                        <Button size="sm" onClick={joinSelectedRoute}>Join route</Button>
                       </Stack>
                     </Card>
                   )}
-                  {pizzaAlert && <Card withBorder><Text fw={600}>Husk å kjøpe pizza på neste stopp!</Text></Card>}
-                  {threeLeftAlert && <Card withBorder><Text fw={600}>Bare 3 stopp igjen, hold ut!</Text></Card>}
-                  {finalAlert && <Card withBorder><Text fw={600}>Gratulerer med gjennomført Tour de Trondheimsveien!</Text></Card>}
+                  {pizzaAlert && <Card withBorder padding="xs" bg="orange.1"><Text fw={600} size="sm">Husk å kjøpe pizza på neste stopp!</Text></Card>}
+                  {threeLeftAlert && <Card withBorder padding="xs" bg="blue.0"><Text fw={600} size="sm">Bare 3 stopp igjen, hold ut!</Text></Card>}
+                  {finalAlert && <Card withBorder padding="xs" bg="green.1"><Text fw={600} size="sm">Gratulerer med gjennomført Tour de Trondheimsveien!</Text></Card>}
 
-                  <Card withBorder p={0} style={{ overflow: 'hidden' }}>
-                    <div style={{ width: '100%', height: 420 }}>
+                  <Card withBorder p={0} style={{ overflow: 'hidden', borderRadius: '8px' }}>
+                    <div style={{ width: '100%', height: 'calc(100vh - 280px)', minHeight: '350px' }}>
                       <MapContainer key={routeId || 'base-map'} style={{ width: '100%', height: '100%' }} {...({ center: currentCenter, zoom: 18 } as Record<string, unknown>)}>
                         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                         <RecenterMap center={currentCenter} zoom={18} />
@@ -344,61 +342,67 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                             return (
                                 <Marker key={u.nickname} position={jitteredPos} icon={createAvatarDivIcon(u.picture_url)}>
                                     <Tooltip permanent direction="top" offset={[0, -10]} opacity={0.9}><Text size="xs" fw={700}>{u.nickname}</Text></Tooltip>
-                                    <Popup><Stack gap={4} align="center"><Avatar src={u.picture_url} size="sm" /><Text size="xs" fw={700}>{u.nickname}</Text><Text size="xs">Sted: {u.current_pub}</Text></Stack></Popup>
+                                    <Popup><Stack gap={4} align="center"><Avatar src={u.picture_url} size="xs" /><Text size="xs" fw={700}>{u.nickname}</Text><Text size="xs">Sted: {u.current_pub}</Text></Stack></Popup>
                                 </Marker>
                             );
                         })}
                       </MapContainer>
                     </div>
                   </Card>
-                  <Progress value={progressValue} color="green" radius="xl" />
-                  <Group grow>
-                    <Button onClick={onNext} color="green">Next<br />Bar</Button>
-                    <Button variant="light" onClick={() => notifications.show({ color: 'blue', title: 'Trøndervits', message: JOKES_MILD[Math.floor(Math.random() * JOKES_MILD.length)] })}>Trøndervits</Button>
-                    <Button onClick={onReset} color="red" variant="light">Reset</Button>
+                  <Progress value={progressValue} color="green" radius="xl" size="lg" />
+                  <Group grow gap="xs">
+                    <Button onClick={onNext} color="green" size="md">Next Bar</Button>
+                    <Button variant="light" size="md" onClick={() => notifications.show({ color: 'blue', title: 'Trøndervits', message: JOKES_MILD[Math.floor(Math.random() * JOKES_MILD.length)] })}>Vits</Button>
+                    <Button onClick={onReset} color="red" variant="light" size="md">Reset</Button>
                   </Group>
-                  <Card withBorder><Text fw={600}>Click for next bar:</Text><Text>{nextPubName}</Text></Card>
+                  <Card withBorder padding="xs"><Text size="xs" c="dimmed">Click for next bar:</Text><Text fw={700} size="sm">{nextPubName}</Text></Card>
                 </Stack>
               )}
             </Tabs.Panel>
 
-            <Tabs.Panel value="Stats" pt="md">
+            <Tabs.Panel value="Stats" pt="xs">
               {activeTab === 'Stats' && (
-                <Stack gap="sm">
-                  <Group grow>
-                    <Card withBorder><Text c="dimmed" size="sm">Deltakere</Text><Title order={2}>{stats?.user_count ?? 0}</Title></Card>
-                    <Card withBorder><Text c="dimmed" size="sm">👑 Beer KOM</Text><Title order={2}>{stats?.beer_kom ?? 'Anonym'}</Title></Card>
-                    <Card withBorder><Text c="dimmed" size="sm">Liter ØL / Vin</Text><Title order={2}>{stats?.total_liters ?? 0}</Title></Card>
+                <Stack gap="xs">
+                  <Group grow gap="xs">
+                    <Card withBorder padding="xs"><Text c="dimmed" size="xs">Deltakere</Text><Title order={4}>{stats?.user_count ?? 0}</Title></Card>
+                    <Card withBorder padding="xs"><Text c="dimmed" size="xs">Beer KOM</Text><Title order={4} style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{stats?.beer_kom ?? 'Anonym'}</Title></Card>
+                    <Card withBorder padding="xs"><Text c="dimmed" size="xs">Liters</Text><Title order={4}>{stats?.total_liters ?? 0}</Title></Card>
                   </Group>
-                  <Card withBorder>
-                    <Title order={4} mb="sm">Liter per bar</Title>
-                    <div style={{ width: '100%', height: 700 }}>
+                  <Card withBorder padding="xs">
+                    <Title order={5} mb="xs">Liter per bar</Title>
+                    <div style={{ width: '100%', height: 600 }}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={stats?.liters_per_bar ?? []} layout="vertical" margin={{ top: 20, left: 20, right: 40, bottom: 20 }}>
+                        <BarChart data={stats?.liters_per_bar ?? []} layout="vertical" margin={{ top: 5, left: 0, right: 30, bottom: 5 }}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis type="number" />
-                          <YAxis type="category" dataKey="bar" width={220} tick={{ fontSize: 12 }} />
-                          <RTooltip />
+                          <XAxis type="number" fontSize={10} />
+                          <YAxis
+                            type="category"
+                            dataKey="bar"
+                            width={110}
+                            tick={{ fontSize: 9 }}
+                            interval={0}
+                          />
+                          <RTooltip labelStyle={{ fontSize: 12 }} itemStyle={{ fontSize: 12 }} />
                           <Bar dataKey="liters" fill="#f1c40f" radius={[0, 4, 4, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </Card>
-                  <Card withBorder>
-                    <Title order={4} mb="sm">Colleague Quiz Results</Title>
+                  <Card withBorder padding="xs">
+                    <Title order={5} mb="xs">Colleague Quiz Results</Title>
                     {extStats?.quiz_stats && extStats.quiz_stats.length > 0 ? (
-                      <Stack gap="xl">
+                      <Stack gap="md">
                         {extStats.quiz_stats.map((q, idx) => (
                           <Box key={`${q.pub}-${idx}`}>
-                            <Text size="sm" c="dimmed">{q.pub}</Text>
-                            <Text fw={600} mb="xs">{q.question}</Text>
-                            <div style={{ width: '100%', height: Math.max(150, q.answers.length * 45 + 40) }}>
+                            <Text size="xs" c="dimmed">{q.pub}</Text>
+                            <Text fw={600} size="sm" mb="xs">{q.question}</Text>
+                            <div style={{ width: '100%', height: Math.max(120, q.answers.length * 35 + 30) }}>
                               <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={q.answers} layout="vertical" margin={{ left: 0, right: 16 }}>
+                                <BarChart data={q.answers} layout="vertical" margin={{ left: 0, right: 20 }}>
                                   <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis type="number" allowDecimals={false} />
-                                  <YAxis type="category" dataKey="answer" width={100} />
-                                  <RTooltip />
+                                  <XAxis type="number" allowDecimals={false} fontSize={10} />
+                                  <YAxis type="category" dataKey="answer" width={80} tick={{ fontSize: 9 }} />
+                                  <RTooltip labelStyle={{ fontSize: 11 }} itemStyle={{ fontSize: 11 }} />
                                   <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                                 </BarChart>
                               </ResponsiveContainer>
@@ -406,105 +410,87 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                           </Box>
                         ))}
                       </Stack>
-                    ) : ( <Text c="dimmed" size="sm">Ingen quiz-svar registrert på denne ruten enda.</Text> )}
+                    ) : ( <Text c="dimmed" size="xs">Ingen quiz-svar registrert enda.</Text> )}
                   </Card>
                 </Stack>
               )}
             </Tabs.Panel>
 
-            <Tabs.Panel value="Chat" pt="md">
-              <Stack gap="sm">
-                <Title order={4}>Chat</Title>
-                <Card withBorder style={{ maxHeight: 420, overflow: 'auto' }}>
+            <Tabs.Panel value="Chat" pt="xs">
+              <Stack gap="xs">
+                <Title order={5}>Chat</Title>
+                <Card withBorder padding="xs" style={{ maxHeight: 350, overflow: 'auto' }}>
                   <Stack gap="xs">
                     {chat.map((m, idx) => (
-                      <Card key={`${m.timestamp}-${idx}`} withBorder p="sm" style={{ background: '#f1c40f', color: 'white' }}>
-                        <Group justify="space-between"><Text fw={600}>{m.nickname}</Text><Text size="xs">{formatTs(m.timestamp)}</Text></Group>
-                        <Text size="sm" mt={6}>{m.message}</Text>
+                      <Card key={`${m.timestamp}-${idx}`} withBorder p="xs" py={4} style={{ background: '#f1c40f', color: 'white' }}>
+                        <Group justify="space-between" wrap="nowrap"><Text fw={700} size="xs">{m.nickname}</Text><Text size="10px">{formatTs(m.timestamp)}</Text></Group>
+                        <Text size="xs" mt={2}>{m.message}</Text>
                       </Card>
                     ))}
                   </Stack>
                 </Card>
-                <Textarea label="Got something on your mind ?" placeholder="Shoot" value={chatDraft} onChange={(e) => setChatDraft(e.currentTarget.value)} autosize minRows={4} maxRows={4} />
-                <Button onClick={onPostChat}>Post comment</Button>
+                <Textarea size="sm" label="Got something on your mind ?" placeholder="Shoot" value={chatDraft} onChange={(e) => setChatDraft(e.currentTarget.value)} autosize minRows={2} maxRows={3} />
+                <Button size="sm" onClick={onPostChat}>Post</Button>
               </Stack>
             </Tabs.Panel>
 
-            <Tabs.Panel value="Post" pt="md">
-              <Stack gap="md">
-                <Title order={4}>Registrer</Title>
-                <Card withBorder><Text c="dimmed" size="sm">Current pub</Text><Title order={3}>{state?.current_pub ?? 'Rendevous Kro'}</Title></Card>
-                <Group grow>
-                  <Button color="yellow" onClick={() => onDrink('beer', 0.5, 'Registrert: 0.5 L')}>0.5 L</Button>
-                  <Button color="yellow" onClick={() => onDrink('beer', 0.33, 'Registrert: 0.33 L')}>0.33 L</Button>
-                  <Button color="yellow" onClick={() => onDrink('wine', 0.25, 'Registrert: Vin glass')}>Vin glass</Button>
-                  <Button color="yellow" onClick={() => onDrink('shot', 0.02, 'Registrert: Shot glass')}>Shot glass</Button>
+            <Tabs.Panel value="Post" pt="xs">
+              <Stack gap="xs">
+                <Title order={5}>Registrer</Title>
+                <Card withBorder padding="xs"><Text c="dimmed" size="xs">Current pub</Text><Text fw={700} size="md">{state?.current_pub ?? 'Rendevous Kro'}</Text></Card>
+                <Group grow gap="xs">
+                  <Button size="sm" color="yellow" onClick={() => onDrink('beer', 0.5, '0.5 L')}>0.5 L</Button>
+                  <Button size="sm" color="yellow" onClick={() => onDrink('beer', 0.33, '0.33 L')}>0.33 L</Button>
                 </Group>
-                <Group grow>
-                  <Button variant="light" onClick={() => onMood('happy', 'Humør satt til: Happy')}>Happy</Button>
-                  <Button variant="light" onClick={() => onMood('normal', 'Humør satt til: Normal')}>Normal</Button>
-                  <Button variant="light" onClick={() => onMood('dizzy', 'Humør satt til: Dizzy')}>Dizzy</Button>
-                  <Button variant="light" onClick={() => onMood('drunk', 'Humør satt til: Drunk')}>Drunk</Button>
+                <Group grow gap="xs">
+                  <Button size="sm" color="yellow" variant="light" onClick={() => onDrink('wine', 0.25, 'Vin glass')}>Vin</Button>
+                  <Button size="sm" color="yellow" variant="light" onClick={() => onDrink('shot', 0.02, 'Shot glass')}>Shot</Button>
                 </Group>
-                <Card withBorder mt="md" style={{ background: '#f8f9fa' }}>
-                  <Text c="dimmed" size="sm" mb={4}>Colleague Quiz - {state?.current_pub}</Text>
-                  <Title order={5} mb="md">{currentQuizQuestion}</Title>
-                  <Group align="flex-end"><TextInput placeholder="Who is on your mind?" value={quizAnswer} onChange={(e) => setQuizAnswer(e.currentTarget.value)} style={{ flex: 1 }} /><Button color="blue" onClick={onQuizSubmit}>Reply</Button></Group>
-                </Card>
-              </Stack>
-            </Tabs.Panel>
-
-            <Tabs.Panel value="Profile" pt="md">
-              <Stack gap="sm">
-                <Title order={4}>Profile</Title>
-                <Card withBorder>
-                  <Stack>
-                    <TextInput label="Nickname" value={nicknameDraft} onChange={(e) => setNicknameDraft(e.currentTarget.value)} />
-                    <TextInput label="Email" value={displayEmail} disabled />
-                    <Select label="Current route" placeholder="Choose route to join" data={routes.map((r) => ({ value: r.id, label: `${r.name} (${r.pubs.length})` }))} value={routeJoinDraft} onChange={(val) => setRouteJoinDraft(val || '')} searchable clearable />
-                    <Group justify="flex-end"><Button variant="light" onClick={joinSelectedRoute}>Join route</Button><Button color="yellow" onClick={onUpdateNickname}>Change nickname</Button></Group>
-                  </Stack>
-                </Card>
-                <Card withBorder><Text c="dimmed" size="sm">Current nickname</Text><Title order={3}>{nickname}</Title></Card>
-              </Stack>
-            </Tabs.Panel>
-
-            <Tabs.Panel value="Routes" pt="md">
-              <Stack gap="md">
-                <Title order={4}>All routes</Title>
-                <Text c="dimmed" size="sm">Every route with stops in order and WGS84 coordinates (lat, lng).</Text>
-                <Stack gap="md">
-                  {routes.map((r) => (
-                    <Card key={r.id} withBorder>
-                      <Stack gap="xs">
-                        <Group justify="space-between" align="flex-start" wrap="wrap"><div><Title order={5}>{r.name}</Title><Text size="xs" c="dimmed">id: {r.id} · {r.pubs.length} pubs</Text></div></Group>
-                        <Table striped highlightOnHover withTableBorder withColumnBorders>
-                          <Table.Thead><Table.Tr><Table.Th style={{ width: 48 }}>#</Table.Th><Table.Th>Pub</Table.Th><Table.Th>Latitude</Table.Th><Table.Th>Longitude</Table.Th></Table.Tr></Table.Thead>
-                          <Table.Tbody>{r.pubs.map((p, i) => (<Table.Tr key={`${r.id}-${i}-${p.name}`}><Table.Td>{i + 1}</Table.Td><Table.Td>{p.name}</Table.Td><Table.Td>{p.lat.toFixed(6)}</Table.Td><Table.Td>{p.lng.toFixed(6)}</Table.Td></Table.Tr>))}</Table.Tbody>
-                        </Table>
-                      </Stack>
-                    </Card>
-                  ))}
-                </Stack>
-                <Title order={4}>Create a pub route</Title>
-                <Card withBorder>
-                  <Stack>
-                    <TextInput label="Route name" placeholder="e.g. Grünerløkka warmup" value={routeCreate.name} onChange={(e) => setRouteCreate((p) => ({ ...p, name: e.currentTarget.value }))} />
-                    <Text fw={600}>Pubs (in order)</Text>
-                    <Stack gap="xs">
-                      {routeCreate.pubs.map((p, idx) => (
-                        <Group key={idx} grow align="end">
-                          <TextInput label={`#${idx + 1} Name`} value={p.name} onChange={(e) => updateRoutePub(idx, { name: e.currentTarget.value })} />
-                          <TextInput label="Lat" value={String(p.lat)} onChange={(e) => { const num = parseFloat(e.currentTarget.value); updateRoutePub(idx, { lat: isNaN(num) ? 0 : num }); }} />
-                          <TextInput label="Lng" value={String(p.lng)} onChange={(e) => { const num = parseFloat(e.currentTarget.value); updateRoutePub(idx, { lng: isNaN(num) ? 0 : num }); }} />
-                          <Button variant="light" color="red" onClick={() => setRouteCreate((prev) => ({ ...prev, pubs: prev.pubs.filter((_, i) => i !== idx) || [{ name: '', lat: 0, lng: 0 }] }))}>Remove</Button>
-                        </Group>
-                      ))}
-                      <Group justify="space-between"><Button variant="light" onClick={() => setRouteCreate((prev) => ({ ...prev, pubs: [...prev.pubs, { name: '', lat: 0, lng: 0 }] }))}>Add pub</Button><Button onClick={createRoute}>Create route</Button></Group>
-                    </Stack>
+                <Group grow gap="xs">
+                  <Button size="xs" variant="outline" color="gray" onClick={() => onMood('happy', 'Happy')}>Happy</Button>
+                  <Button size="xs" variant="outline" color="gray" onClick={() => onMood('normal', 'Normal')}>Normal</Button>
+                  <Button size="xs" variant="outline" color="gray" onClick={() => onMood('dizzy', 'Dizzy')}>Dizzy</Button>
+                  <Button size="xs" variant="outline" color="gray" onClick={() => onMood('drunk', 'Drunk')}>Drunk</Button>
+                </Group>
+                <Card withBorder mt="xs" padding="xs" bg="gray.0">
+                  <Text c="dimmed" size="xs" mb={4}>Quiz - {state?.current_pub}</Text>
+                  <Text fw={600} size="sm" mb="xs">{currentQuizQuestion}</Text>
+                  <Stack gap="xs">
+                    <TextInput size="sm" placeholder="Who is on your mind?" value={quizAnswer} onChange={(e) => setQuizAnswer(e.currentTarget.value)} />
+                    <Button size="sm" color="blue" onClick={onQuizSubmit}>Reply</Button>
                   </Stack>
                 </Card>
               </Stack>
+            </Tabs.Panel>
+
+            <Tabs.Panel value="Profile" pt="xs">
+              <Stack gap="xs">
+                <Title order={5}>Profile</Title>
+                <Card withBorder padding="xs">
+                  <Stack gap="xs">
+                    <TextInput size="sm" label="Nickname" value={nicknameDraft} onChange={(e) => setNicknameDraft(e.currentTarget.value)} />
+                    <Select size="sm" label="Join route" placeholder="Choose route" data={routes.map((r) => ({ value: r.id, label: `${r.name}` }))} value={routeJoinDraft} onChange={(val) => setRouteJoinDraft(val || '')} searchable clearable />
+                    <Group grow gap="xs">
+                      <Button size="sm" variant="light" onClick={joinSelectedRoute}>Join</Button>
+                      <Button size="sm" color="yellow" onClick={onUpdateNickname}>Save</Button>
+                    </Group>
+                  </Stack>
+                </Card>
+                <Card withBorder padding="xs"><Text c="dimmed" size="xs">Current</Text><Text fw={700} size="sm">{nickname}</Text></Card>
+              </Stack>
+            </Tabs.Panel>
+
+            {/* Routes tab kept but simplified for mobile */}
+            <Tabs.Panel value="Routes" pt="xs">
+               <Stack gap="xs">
+                 <Title order={5}>Routes</Title>
+                 {routes.map((r) => (
+                   <Card key={r.id} withBorder padding="xs">
+                     <Text fw={700} size="sm">{r.name}</Text>
+                     <Text size="xs" c="dimmed">{r.pubs.length} pubs</Text>
+                   </Card>
+                 ))}
+               </Stack>
             </Tabs.Panel>
           </Tabs>
         </Container>
@@ -525,15 +511,15 @@ function AppAuth0Mode() {
     return (
       <Center h="100vh" p="md">
         <Stack align="center" gap="md" maw={420}>
-          <Title order={3}>Tour de Trondheimsveien</Title>
-          <Text c="dimmed" ta="center">Log in with Auth0 to join a route. Your avatar starts on the first pub and moves when you tap Neste Bar.</Text>
+          <Title order={3}>Pub Crawl</Title>
+          <Text c="dimmed" ta="center" size="sm">Log in with Auth0 to join a route.</Text>
           <Button onClick={() => void loginWithRedirect()}>Log in</Button>
         </Stack>
       </Center>
     )
   }
   const apiIdentityKey = (user.email ?? user.sub ?? '').trim(); const displayEmail = user.email ?? user.sub ?? ''
-  return <AppCore apiIdentityKey={apiIdentityKey} displayEmail={displayEmail} pictureUrl={user.picture} headerActions={<Group gap="xs" wrap="nowrap"><Avatar src={user.picture ?? undefined} alt="" size="sm" radius="xl" /><Text size="sm" lineClamp={1} maw={140} visibleFrom="sm">{user.name ?? user.email ?? user.sub}</Text><Button size="xs" variant="light" onClick={() => void logout({ logoutParams: { returnTo: window.location.origin } })}>Log out</Button></Group>} />
+  return <AppCore apiIdentityKey={apiIdentityKey} displayEmail={displayEmail} pictureUrl={user.picture} headerActions={<Group gap="xs" wrap="nowrap"><Avatar src={user.picture ?? undefined} alt="" size="sm" radius="xl" /><Button size="xs" variant="light" onClick={() => void logout({ logoutParams: { returnTo: window.location.origin } })}>Logout</Button></Group>} />
 }
 
 function AppDemoMode() {
@@ -553,18 +539,17 @@ function AppDemoMode() {
       displayEmail={email || ''}
       pictureUrl={null}
       headerActions={
-        <Group gap="xs">
+        <Group gap={4} wrap="nowrap">
           <Select
-            placeholder="Select user"
+            placeholder="User"
             size="xs"
-            w={220}
+            w={120}
             data={DEMO_USERS.map(u => ({ value: u, label: u }))}
             value={email}
             onChange={(val) => setEmail(val || '')}
             searchable
-            clearable
           />
-          <Button size="xs" variant="light" onClick={applyDemoEmail}>Use user</Button>
+          <Button size="xs" variant="light" onClick={applyDemoEmail} px={4}>Use</Button>
         </Group>
       }
     />
