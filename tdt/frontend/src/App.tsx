@@ -239,7 +239,7 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
     const answer = quizAnswer.trim(); const pubName = state?.current_pub; if (!answer || !pubName) return;
     const question = QUIZ_QUESTIONS[pubName] || DEFAULT_QUESTION
     try {
-      await api.quiz(pubName, question, answer); notifications.show({ color: 'green', title: 'Quiz', message: 'Svar lagret!' });
+      await api.quiz(pubName, question, answer); notifications.show({ color: 'green', title: 'Quiz', message: 'Reply saved!' });
       setQuizAnswer(''); await refreshStateAndStats();
     } catch (e) { notifications.show({ color: 'red', title: 'Feil', message: 'Kunne ikke lagre svar' }) }
   }
@@ -296,7 +296,7 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
         <Container size="sm">
           <Tabs value={activeTab} onChange={setActiveTab}>
             <Tabs.List>
-              <Tabs.Tab value="Kart">Kart</Tabs.Tab>
+              <Tabs.Tab value="Kart">Map</Tabs.Tab>
               <Tabs.Tab value="Stats">Stats</Tabs.Tab>
               <Tabs.Tab value="Chat">Chat</Tabs.Tab>
               <Tabs.Tab value="Post">Post</Tabs.Tab>
@@ -353,11 +353,11 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                   </Card>
                   <Progress value={progressValue} color="green" radius="xl" />
                   <Group grow>
-                    <Button onClick={onNext} color="green">Neste<br />Bar</Button>
+                    <Button onClick={onNext} color="green">Next<br />Bar</Button>
                     <Button variant="light" onClick={() => notifications.show({ color: 'blue', title: 'Trøndervits', message: JOKES_MILD[Math.floor(Math.random() * JOKES_MILD.length)] })}>Trøndervits</Button>
                     <Button onClick={onReset} color="red" variant="light">Reset</Button>
                   </Group>
-                  <Card withBorder><Text fw={600}>Gå til Neste Bar:</Text><Text>{nextPubName}</Text></Card>
+                  <Card withBorder><Text fw={600}>Click for next bar:</Text><Text>{nextPubName}</Text></Card>
                 </Stack>
               )}
             </Tabs.Panel>
@@ -385,7 +385,7 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                     </div>
                   </Card>
                   <Card withBorder>
-                    <Title order={4} mb="sm">Kollega Quiz Resultater</Title>
+                    <Title order={4} mb="sm">Colleague Quiz Results</Title>
                     {extStats?.quiz_stats && extStats.quiz_stats.length > 0 ? (
                       <Stack gap="xl">
                         {extStats.quiz_stats.map((q, idx) => (
@@ -425,7 +425,7 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                     ))}
                   </Stack>
                 </Card>
-                <Textarea label="Harru no å fortelle ?" placeholder="Fyr løs" value={chatDraft} onChange={(e) => setChatDraft(e.currentTarget.value)} autosize minRows={4} maxRows={4} />
+                <Textarea label="Got something on your mind ?" placeholder="Shoot" value={chatDraft} onChange={(e) => setChatDraft(e.currentTarget.value)} autosize minRows={4} maxRows={4} />
                 <Button onClick={onPostChat}>Post comment</Button>
               </Stack>
             </Tabs.Panel>
@@ -447,9 +447,9 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                   <Button variant="light" onClick={() => onMood('drunk', 'Humør satt til: Drunk')}>Drunk</Button>
                 </Group>
                 <Card withBorder mt="md" style={{ background: '#f8f9fa' }}>
-                  <Text c="dimmed" size="sm" mb={4}>Kollega Quiz - {state?.current_pub}</Text>
+                  <Text c="dimmed" size="sm" mb={4}>Colleague Quiz - {state?.current_pub}</Text>
                   <Title order={5} mb="md">{currentQuizQuestion}</Title>
-                  <Group align="flex-end"><TextInput placeholder="Hvem tenker du på?" value={quizAnswer} onChange={(e) => setQuizAnswer(e.currentTarget.value)} style={{ flex: 1 }} /><Button color="blue" onClick={onQuizSubmit}>Svar</Button></Group>
+                  <Group align="flex-end"><TextInput placeholder="Who is on your mind?" value={quizAnswer} onChange={(e) => setQuizAnswer(e.currentTarget.value)} style={{ flex: 1 }} /><Button color="blue" onClick={onQuizSubmit}>Reply</Button></Group>
                 </Card>
               </Stack>
             </Tabs.Panel>
