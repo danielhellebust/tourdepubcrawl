@@ -545,22 +545,34 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                     </Card>
                   </Group>
 
-                  <Card withBorder>
-                    <Title order={4} mb="sm">
-                      Liter per bar
-                    </Title>
-                    <div style={{ width: '100%', height: 420 }}>
-                      <ResponsiveContainer width="100%" height={420} minHeight={420}>
-                        <BarChart data={stats?.liters_per_bar ?? []} layout="vertical" margin={{ left: 32, right: 16 }}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis type="number" />
-                          <YAxis type="category" dataKey="bar" width={170} />
-                          <RTooltip />
-                          <Bar dataKey="liters" fill="#f1c40f" radius={[6, 6, 6, 6]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </Card>
+                    <Card withBorder>
+                      <Title order={4} mb="sm">
+                        Liter per bar
+                      </Title>
+                      {/* INCREASE height to accommodate more bars (e.g., 500 instead of 420) */}
+                      <div style={{ width: '100%', height: 500 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={stats?.liters_per_bar ?? []}
+                            layout="vertical"
+                            {/* ADD margin top and bottom so the first/last bars aren't cut off */}
+                            margin={{ top: 20, left: 20, right: 40, bottom: 20 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" />
+                            {/* INCREASE width to 180 or 200 to fit long names like "Crow bar & Bryggeri" */}
+                            <YAxis
+                              type="category"
+                              dataKey="bar"
+                              width={180}
+                              tick={{ fontSize: 12 }}
+                            />
+                            <RTooltip />
+                            <Bar dataKey="liters" fill="#f1c40f" radius={[0, 4, 4, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </Card>
 
                   <Card withBorder>
                     <Title order={4} mb="sm">Kollega Quiz Resultater</Title>
