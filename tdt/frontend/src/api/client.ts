@@ -13,7 +13,7 @@ import type {
 
 const DEFAULT_EMAIL = 'demo@tdt.local'
 const USER_KEY = 'tdt.userEmail'
-const API_BASE = 'http://127.0.0.1:5004' // Vite proxy handles /api → backend
+const API_BASE = 'https://tourdepubcrawlbff-46150979625.europe-west1.run.app' // Vite proxy handles /api → backend
 
 /** When set (e.g. Auth0), API calls use this identity for `X-User-Email`. */
 let resolveIdentity: (() => string | null | undefined) | null = null
