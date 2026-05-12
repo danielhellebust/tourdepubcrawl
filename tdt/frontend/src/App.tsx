@@ -42,30 +42,43 @@ const JOKES_MILD = [
   'Bli itj nå fart uten bart',
   'Bli itj nå barsk uten karsk',
   "Det bli fart på rattet me smårips'n i krattet",
-'Du e itj mannj før du har lært dæ å bannj',
-'Det bli itj no darlings me klær fra Carlings',
-'Det e itj no fæst om du itj havne i fyllearrest',
-'Du e litt femi om du hete Kurt Remi',
-"Det bli itj no sphænk ut'n bil me sænk",
-'Du e itj nå tess hvis du ikke kjøre mokasiner te dress',
-'Du e itj sprø uten fuggelfrø',
-"Du blir itj knall ut'n kjall",
-'E itj orntli vors om du itj må reng røde kors',
-'Du treng itj nå mus hvis du kjøre trailer med grus',
-'Ska du ha dametække må du dra brække',
-'Det e litt flaut om du itj kan å braut',
-"Når du har sopp på taska e det på tide å få'n vaska",
-"Det e itj no tess ut'n grilldress",
-'Du e heit når du e småfeit',
-'E du søring e du itj verdt ein femtiøring',
-'Du e verdig om du får stå mens du sjer på RBK',
-"Du e itj klar før du får'n hard av å sjå ein ainna kar bar",
-"Du e itj kar hves du itj får'n hard",
-'Du blir itj snasen uten skrå opp nasen',
-"Du sjer berre svin hves du itj' dunke bensin",
-"Du får itj no skreppa ut'n ein pris under leppa",
-"Det blir itj' mus uten siestabrus",
-"Bruke du trus kan du glømm å få dæ mus",
+  'Du e itj mannj før du har lært dæ å bannj',
+  'Det bli itj no darlings me klær fra Carlings',
+  'Det e itj no fæst om du itj havne i fyllearrest',
+  'Du e litt femi om du hete Kurt Remi',
+  "Det bli itj no sphænk ut'n bil me sænk",
+  'Du e itj nå tess hvis du ikke kjøre mokasiner te dress',
+  'Du e itj sprø uten fuggelfrø',
+  "Du blir itj knall ut'n kjall",
+  'E itj orntli vors om du itj må reng røde kors',
+  'Du treng itj nå mus hvis du kjøre trailer med grus',
+  'Ska du ha dametække må du dra brække',
+  'Det e litt flaut om du itj kan å braut',
+  "Når du har sopp på taska e det på tide å få'n vaska",
+  "Det e itj no tess ut'n grilldress",
+  'Du e heit når du e småfeit',
+  'E du søring e du itj verdt ein femtiøring',
+  'Du e verdig om du får stå mens du sjer på RBK',
+  "Du e itj klar før du får'n hard av å sjå ein ainna kar bar",
+  "Du e itj kar hves du itj får'n hard",
+  'Du blir itj snasen uten skrå opp nasen',
+  "Du sjer berre svin hves du itj' dunke bensin",
+  "Du får itj no skreppa ut'n ein pris under leppa",
+  "Det blir itj' mus uten siestabrus",
+  "Bruke du trus kan du glømm å få dæ mus",
+]
+
+const DEMO_USERS = [
+  "Victor Pettersson", "Teddy Teisrud", "Lars Mong", "Anne Margrete Bertsch",
+  "Harald Vegstein", "Maria Lattila", "Steffen Olsen", "Monja Fløttre",
+  "Josefin Schmidt", "Rodolfo Gordillo", "Yolanda Aspelund", "Even Skaar",
+  "Kristin Haugbraaten", "Eirik Sæther", "Toni Poljanic", "Velimir Brnicevic",
+  "Vladimir Rodionov", "Michael Windeler", "Bjørn Tore Mathisen", "Tove Bergh",
+  "Ragnhild OrtenJohansen", "Jørn Vidar", "Rob Rhind", "Idar Herland",
+  "Robert Bos", "Per Christian Hoel", "Geir Edvardsen", "Einar Lunde",
+  "Niksa Kacic", "Per Christian Riis-Ulsbøl", "Negar Nourielmi", "Alexander Bergsmo",
+  "Lindi Coetzer", "Sudheesh Kanhangad", "Asle Pettersen", "Ole Mathisen",
+  "Dag Rougthvedt", "Leif Erich", "Joseph Udie Abanyam"
 ]
 
 // Custom questions per pub
@@ -103,7 +116,6 @@ type QuizStat = {
   answers: { answer: string; count: number }[]
 }
 
-// Extension to help render all users on the map
 type UserMapState = {
   nickname: string;
   current_pub: string;
@@ -112,36 +124,23 @@ type UserMapState = {
 
 function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: AppCoreProps) {
   const [activeTab, setActiveTab] = useState<string | null>('Kart')
-
   const [route, setRoute] = useState<RouteResponse | null>(null)
   const [routes, setRoutes] = useState<RouteDetail[]>([])
   const [state, setState] = useState<StateResponse | null>(null)
   const [stats, setStats] = useState<StatsResponse | null>(null)
-
   const [chat, setChat] = useState<{ nickname: string; timestamp: string; message: string }[]>([])
   const [chatDraft, setChatDraft] = useState('')
-
   const [nickname, setNickname] = useState<string>('')
   const [nicknameDraft, setNicknameDraft] = useState<string>('')
   const [routeId, setRouteId] = useState<string>('')
   const [routeJoinDraft, setRouteJoinDraft] = useState<string>('')
-
-  const [routeCreate, setRouteCreate] = useState<RouteCreateInput>({
-    name: '',
-    pubs: [{ name: '', lat: 0, lng: 0 }],
-  })
-
+  const [routeCreate, setRouteCreate] = useState<RouteCreateInput>({ name: '', pubs: [{ name: '', lat: 0, lng: 0 }] })
   const [pilsQuery, setPilsQuery] = useState('')
   const [pilsOut, setPilsOut] = useState<string>('')
   const [pilsCredit, setPilsCredit] = useState<number | null>(null)
-
   const [moodOut, setMoodOut] = useState<string>('')
   const [moodCredit, setMoodCredit] = useState<number | null>(null)
-
-  // Quiz state
   const [quizAnswer, setQuizAnswer] = useState('')
-
-  // State to hold the parsed GPX track points
   const [golarPolyline, setGolarPolyline] = useState<[number, number][]>([])
 
   const currentPubIdx = useMemo(() => {
@@ -163,13 +162,11 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
           const xmlDoc = parser.parseFromString(text, 'text/xml')
           const trkpts = xmlDoc.querySelectorAll('trkpt')
           const pts: [number, number][] = []
-
           trkpts.forEach((pt) => {
             const lat = parseFloat(pt.getAttribute('lat') || '0')
             const lon = parseFloat(pt.getAttribute('lon') || '0')
             if (lat && lon) pts.push([lat, lon])
           })
-
           setGolarPolyline(pts)
         })
         .catch((err) => console.error('Failed to parse GPX:', err))
@@ -178,11 +175,8 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
     }
   }, [currentRouteName])
 
-  // Polling mechanism to keep the map and stats updated for all users
   useEffect(() => {
-    const interval = setInterval(() => {
-      refreshStateAndStats()
-    }, 30000); // Sync every 30 seconds
+    const interval = setInterval(() => { refreshStateAndStats() }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -198,27 +192,16 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
         setNicknameDraft(me.nickname || '')
         setChat(c.messages || [])
         setStats(st)
-
         if (me.route_id) {
           const [r, s] = await Promise.all([api.route(), api.state()])
           if (!mounted) return
           setRoute(r)
           setState(s)
-          if (s) {
-            setPilsCredit(s.pils_pilot_credit)
-            setMoodCredit(s.mood_credit)
-          }
-        } else {
-          setRoute(null)
-          setState(null)
-        }
+          if (s) { setPilsCredit(s.pils_pilot_credit); setMoodCredit(s.mood_credit); }
+        } else { setRoute(null); setState(null); }
       })
-      .catch((e: unknown) => {
-        notifications.show({ color: 'red', title: 'Failed to load', message: String(e) })
-      })
-    return () => {
-      mounted = false
-    }
+      .catch((e: unknown) => { notifications.show({ color: 'red', title: 'Failed to load', message: String(e) }) })
+    return () => { mounted = false }
   }, [apiIdentityKey])
 
   const currentCenter: [number, number] = useMemo(() => {
@@ -231,136 +214,63 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
 
   async function refreshStateAndStats() {
     const [s, st, c] = await Promise.all([api.state(), api.stats(), api.chat()])
-    setState(s)
-    setStats(st)
-    setChat(c.messages || [])
-    if (s) {
-      setPilsCredit(s.pils_pilot_credit)
-      setMoodCredit(s.mood_credit)
-    }
+    setState(s); setStats(st); setChat(c.messages || [])
+    if (s) { setPilsCredit(s.pils_pilot_credit); setMoodCredit(s.mood_credit); }
   }
 
-  async function onNext() {
-    await api.next()
-    await refreshStateAndStats()
-  }
-
-  async function onReset() {
-    await api.reset()
-    await refreshStateAndStats()
-  }
-
+  async function onNext() { await api.next(); await refreshStateAndStats(); }
+  async function onReset() { await api.reset(); await refreshStateAndStats(); }
   async function onPostChat() {
-    const message = chatDraft.trim()
-    if (!message) return
-    await api.chatPost(message)
-    setChatDraft('')
-    await refreshStateAndStats()
+    const message = chatDraft.trim(); if (!message) return;
+    await api.chatPost(message); setChatDraft(''); await refreshStateAndStats();
   }
-
   async function onUpdateNickname() {
-    const next = nicknameDraft.trim()
-    if (!next) return
-    const me = await api.meUpdate(next)
-    setNickname(me.nickname || '')
+    const next = nicknameDraft.trim(); if (!next) return;
+    const me = await api.meUpdate(next); setNickname(me.nickname || '');
     notifications.show({ color: 'green', title: 'Profile', message: 'Nickname updated' })
   }
-
   async function onDrink(type: 'beer' | 'wine' | 'shot', volume: number, label: string) {
-    await api.drink(type, volume)
-    notifications.show({ color: 'green', title: 'Registrert', message: label })
-    await refreshStateAndStats()
+    await api.drink(type, volume); notifications.show({ color: 'green', title: 'Registrert', message: label }); await refreshStateAndStats();
   }
-
   async function onMood(value: 'happy' | 'normal' | 'dizzy' | 'drunk', label: string) {
-    await api.mood(value)
-    notifications.show({ color: 'green', title: 'Humør', message: label })
-    await refreshStateAndStats()
+    await api.mood(value); notifications.show({ color: 'green', title: 'Humør', message: label }); await refreshStateAndStats();
   }
-
   async function onQuizSubmit() {
-    const answer = quizAnswer.trim()
-    const pubName = state?.current_pub
-    if (!answer || !pubName) return
-
+    const answer = quizAnswer.trim(); const pubName = state?.current_pub; if (!answer || !pubName) return;
     const question = QUIZ_QUESTIONS[pubName] || DEFAULT_QUESTION
-
     try {
-      await api.quiz(pubName, question, answer)
-
-      notifications.show({ color: 'green', title: 'Quiz', message: 'Svar lagret!' })
-      setQuizAnswer('')
-      await refreshStateAndStats()
-    } catch (e) {
-      notifications.show({ color: 'red', title: 'Feil', message: 'Kunne ikke lagre svar' })
-    }
-  }
-
-  async function onPilsPilot() {
-    const q = pilsQuery.trim()
-    if (!q) return
-    const res = await api.pilsPilot(q)
-    setPilsOut(res.output_markdown)
-    setPilsQuery('')
-    setPilsCredit(res.credit_left)
-    notifications.show({ color: 'green', title: 'PilsPilot', message: 'Svar levert' })
-    await refreshStateAndStats()
-  }
-
-  async function onMoodReport() {
-    const res = await api.moodReport()
-    setMoodOut(res.output_markdown)
-    setMoodCredit(res.credit_left)
-    notifications.show({ color: 'green', title: 'Stemningsrapport', message: 'Oppdatert' })
-    await refreshStateAndStats()
+      await api.quiz(pubName, question, answer); notifications.show({ color: 'green', title: 'Quiz', message: 'Svar lagret!' });
+      setQuizAnswer(''); await refreshStateAndStats();
+    } catch (e) { notifications.show({ color: 'red', title: 'Feil', message: 'Kunne ikke lagre svar' }) }
   }
 
   async function joinSelectedRoute() {
-    if (!routeJoinDraft) {
-      notifications.show({ color: 'red', title: 'Route', message: 'Choose a route first' })
-      return
-    }
-    await api.routesJoin({ route_id: routeJoinDraft })
-    const [me, r, s] = await Promise.all([api.me(), api.route(), api.state()])
-    setRouteId(me.route_id || '')
-    setRouteJoinDraft(me.route_id || '')
-    setRoute(r)
-    setState(s)
-    if (s) {
-        setPilsCredit(s.pils_pilot_credit)
-        setMoodCredit(s.mood_credit)
-    }
-    notifications.show({ color: 'green', title: 'Route', message: 'Joined route' })
-    await refreshStateAndStats()
+    if (!routeJoinDraft) { notifications.show({ color: 'red', title: 'Route', message: 'Choose a route first' }); return; }
+    await api.routesJoin({ route_id: routeJoinDraft });
+    const [me, r, s] = await Promise.all([api.me(), api.route(), api.state()]);
+    setRouteId(me.route_id || ''); setRouteJoinDraft(me.route_id || ''); setRoute(r); setState(s);
+    if (s) { setPilsCredit(s.pils_pilot_credit); setMoodCredit(s.mood_credit); }
+    notifications.show({ color: 'green', title: 'Route', message: 'Joined route' }); await refreshStateAndStats();
   }
 
   function updateRoutePub(idx: number, patch: Partial<Pub>) {
     setRouteCreate((prev) => {
-      if (!prev?.pubs || !prev.pubs[idx]) return prev
-      const nextPubs = [...prev.pubs]
-      nextPubs[idx] = { ...nextPubs[idx], ...patch }
+      if (!prev?.pubs || !prev.pubs[idx]) return prev;
+      const nextPubs = [...prev.pubs]; nextPubs[idx] = { ...nextPubs[idx], ...patch };
       return { ...prev, pubs: nextPubs }
     })
   }
 
   async function createRoute() {
-    const errors = validateRouteCreateInput(routeCreate)
-    if (errors.length) {
-      notifications.show({ color: 'red', title: 'Create route', message: errors[0] })
-      return
-    }
-    await api.routesCreate({
-      name: routeCreate.name.trim(),
-      pubs: routeCreate.pubs.map((p) => ({ name: p.name.trim(), lat: Number(p.lat), lng: Number(p.lng) })),
-    })
-    const rs = await api.routesDetail()
-    setRoutes(rs)
-    notifications.show({ color: 'green', title: 'Create route', message: 'Route created' })
+    const errors = validateRouteCreateInput(routeCreate);
+    if (errors.length) { notifications.show({ color: 'red', title: 'Create route', message: errors[0] }); return; }
+    await api.routesCreate({ name: routeCreate.name.trim(), pubs: routeCreate.pubs.map((p) => ({ name: p.name.trim(), lat: Number(p.lat), lng: Number(p.lng) })) });
+    const rs = await api.routesDetail(); setRoutes(rs); notifications.show({ color: 'green', title: 'Create route', message: 'Route created' })
   }
 
   const pubsRemaining = useMemo(() => {
-    if (!route || !state) return []
-    const idx = route.pubs.findIndex((p) => p.name === state.current_pub)
+    if (!route || !state) return [];
+    const idx = route.pubs.findIndex((p) => p.name === state.current_pub);
     return route.pubs.slice(Math.max(idx, 0))
   }, [route, state])
 
@@ -368,7 +278,6 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
   const pizzaAlert = pubsRemaining[0]?.name === 'Pane & Vino'
   const threeLeftAlert = pubsRemaining[0]?.name === 'Ludus Cafe & sportsbar'
   const finalAlert = pubsRemaining.length === 1 && pubsRemaining[0]?.name === 'Schouskjelleren Mikrobryggeri'
-
   const currentQuizQuestion = state?.current_pub ? QUIZ_QUESTIONS[state.current_pub] || DEFAULT_QUESTION : DEFAULT_QUESTION
   const extStats = stats as (StatsResponse & { quiz_stats?: QuizStat[], users?: UserMapState[] }) | null
 
@@ -402,121 +311,53 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                     <Card withBorder>
                       <Stack gap="xs">
                         <Text fw={600}>Velg en rute for å bli med</Text>
-                        <Select
-                          placeholder="Choose route"
-                          data={routes.map((r) => ({ value: r.id, label: `${r.name} (${r.pubs.length})` }))}
-                          value={routeJoinDraft}
-                          onChange={(val) => setRouteJoinDraft(val || '')}
-                          searchable
-                        />
-                        <Group justify="flex-end">
-                          <Button onClick={joinSelectedRoute}>Join route</Button>
-                        </Group>
+                        <Select placeholder="Choose route" data={routes.map((r) => ({ value: r.id, label: `${r.name} (${r.pubs.length})` }))} value={routeJoinDraft} onChange={(val) => setRouteJoinDraft(val || '')} searchable />
+                        <Group justify="flex-end"><Button onClick={joinSelectedRoute}>Join route</Button></Group>
                       </Stack>
                     </Card>
                   )}
-                  {pizzaAlert && (
-                    <Card withBorder>
-                      <Text fw={600}>Husk å kjøpe pizza på neste stopp!</Text>
-                    </Card>
-                  )}
-                  {threeLeftAlert && (
-                    <Card withBorder>
-                      <Text fw={600}>Bare 3 stopp igjen, hold ut!</Text>
-                    </Card>
-                  )}
-                  {finalAlert && (
-                    <Card withBorder>
-                      <Text fw={600}>Gratulerer med gjennomført Tour de Trondheimsveien!</Text>
-                    </Card>
-                  )}
+                  {pizzaAlert && <Card withBorder><Text fw={600}>Husk å kjøpe pizza på neste stopp!</Text></Card>}
+                  {threeLeftAlert && <Card withBorder><Text fw={600}>Bare 3 stopp igjen, hold ut!</Text></Card>}
+                  {finalAlert && <Card withBorder><Text fw={600}>Gratulerer med gjennomført Tour de Trondheimsveien!</Text></Card>}
 
                   <Card withBorder p={0} style={{ overflow: 'hidden' }}>
                     <div style={{ width: '100%', height: 420 }}>
-                      <MapContainer
-                        key={routeId || 'base-map'}
-                        style={{ width: '100%', height: '100%' }}
-                        {...({ center: currentCenter, zoom: 18 } as Record<string, unknown>)}
-                      >
+                      <MapContainer key={routeId || 'base-map'} style={{ width: '100%', height: '100%' }} {...({ center: currentCenter, zoom: 18 } as Record<string, unknown>)}>
                         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                         <RecenterMap center={currentCenter} zoom={18} />
-
                         {route?.polyline?.length ? <Polyline positions={route.polyline} pathOptions={{ color: 'blue', weight: 6 }} /> : null}
-
                         {currentRouteName === 'Golar Pub Crawl' && golarPolyline.length > 0 && (
                           <Polyline positions={golarPolyline} pathOptions={{ color: 'red', weight: 4, dashArray: '8, 8' }} />
                         )}
-
                         {route?.pubs.map((p) => (
                           <Marker key={p.name} position={pubLatLng(p)}>
                             <Tooltip {...({ permanent: true } as Record<string, unknown>)}>{p.name}</Tooltip>
                             <Popup>{p.name}</Popup>
                           </Marker>
                         ))}
-
-                        {/* Rendering ALL users with jitter and permanent nicknames */}
                         {extStats?.users?.map((u) => {
                             const userPub = route?.pubs.find(p => p.name === u.current_pub);
                             if (!userPub) return null;
-
-                            // Calculate small random jitter (approx 5-10 meters) to avoid perfect overlapping
                             const jitterLat = (Math.random() - 0.5) * 0.00015;
                             const jitterLng = (Math.random() - 0.5) * 0.00015;
                             const jitteredPos: [number, number] = [userPub.lat + jitterLat, userPub.lng + jitterLng];
-
                             return (
-                                <Marker
-                                    key={u.nickname}
-                                    position={jitteredPos}
-                                    icon={createAvatarDivIcon(u.picture_url)}
-                                >
-                                    {/* ALWAYS SHOW NICKNAME using permanent Tooltip */}
-                                    <Tooltip
-                                        permanent
-                                        direction="top"
-                                        offset={[0, -10]}
-                                        opacity={0.9}
-                                    >
-                                        <Text size="xs" fw={700}>{u.nickname}</Text>
-                                    </Tooltip>
-
-                                    <Popup>
-                                        <Stack gap={4} align="center">
-                                            <Avatar src={u.picture_url} size="sm" />
-                                            <Text size="xs" fw={700}>{u.nickname}</Text>
-                                            <Text size="xs">Sted: {u.current_pub}</Text>
-                                        </Stack>
-                                    </Popup>
+                                <Marker key={u.nickname} position={jitteredPos} icon={createAvatarDivIcon(u.picture_url)}>
+                                    <Tooltip permanent direction="top" offset={[0, -10]} opacity={0.9}><Text size="xs" fw={700}>{u.nickname}</Text></Tooltip>
+                                    <Popup><Stack gap={4} align="center"><Avatar src={u.picture_url} size="sm" /><Text size="xs" fw={700}>{u.nickname}</Text><Text size="xs">Sted: {u.current_pub}</Text></Stack></Popup>
                                 </Marker>
                             );
                         })}
                       </MapContainer>
                     </div>
                   </Card>
-
                   <Progress value={progressValue} color="green" radius="xl" />
-
                   <Group grow>
-                    <Button onClick={onNext} color="green">
-                      Neste
-                      <br />
-                      Bar
-                    </Button>
-                    <Button
-                      variant="light"
-                      onClick={() => notifications.show({ color: 'blue', title: 'Trøndervits', message: JOKES_MILD[Math.floor(Math.random() * JOKES_MILD.length)] })}
-                    >
-                      Trøndervits
-                    </Button>
-                    <Button onClick={onReset} color="red" variant="light">
-                      Reset
-                    </Button>
+                    <Button onClick={onNext} color="green">Neste<br />Bar</Button>
+                    <Button variant="light" onClick={() => notifications.show({ color: 'blue', title: 'Trøndervits', message: JOKES_MILD[Math.floor(Math.random() * JOKES_MILD.length)] })}>Trøndervits</Button>
+                    <Button onClick={onReset} color="red" variant="light">Reset</Button>
                   </Group>
-
-                  <Card withBorder>
-                    <Text fw={600}>Gå til Neste Bar:</Text>
-                    <Text>{nextPubName}</Text>
-                  </Card>
+                  <Card withBorder><Text fw={600}>Gå til Neste Bar:</Text><Text>{nextPubName}</Text></Card>
                 </Stack>
               )}
             </Tabs.Panel>
@@ -525,55 +366,24 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
               {activeTab === 'Stats' && (
                 <Stack gap="sm">
                   <Group grow>
-                    <Card withBorder>
-                      <Text c="dimmed" size="sm">
-                        Deltakere
-                      </Text>
-                      <Title order={2}>{stats?.user_count ?? 0}</Title>
-                    </Card>
-                    <Card withBorder>
-                      <Text c="dimmed" size="sm">
-                        👑 Beer KOM
-                      </Text>
-                      <Title order={2}>{stats?.beer_kom ?? 'Anonym'}</Title>
-                    </Card>
-                    <Card withBorder>
-                      <Text c="dimmed" size="sm">
-                        Liter ØL / Vin
-                      </Text>
-                      <Title order={2}>{stats?.total_liters ?? 0}</Title>
-                    </Card>
+                    <Card withBorder><Text c="dimmed" size="sm">Deltakere</Text><Title order={2}>{stats?.user_count ?? 0}</Title></Card>
+                    <Card withBorder><Text c="dimmed" size="sm">👑 Beer KOM</Text><Title order={2}>{stats?.beer_kom ?? 'Anonym'}</Title></Card>
+                    <Card withBorder><Text c="dimmed" size="sm">Liter ØL / Vin</Text><Title order={2}>{stats?.total_liters ?? 0}</Title></Card>
                   </Group>
-
-                    <Card withBorder>
-                      <Title order={4} mb="sm">
-                        Liter per bar
-                      </Title>
-                      {/* INCREASE height to accommodate more bars (e.g., 500 instead of 420) */}
-                      <div style={{ width: '100%', height: 500 }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={stats?.liters_per_bar ?? []}
-                            layout="vertical"
-                            {/* ADD margin top and bottom so the first/last bars aren't cut off */}
-                            margin={{ top: 20, left: 20, right: 40, bottom: 20 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" />
-                            {/* INCREASE width to 180 or 200 to fit long names like "Crow bar & Bryggeri" */}
-                            <YAxis
-                              type="category"
-                              dataKey="bar"
-                              width={180}
-                              tick={{ fontSize: 12 }}
-                            />
-                            <RTooltip />
-                            <Bar dataKey="liters" fill="#f1c40f" radius={[0, 4, 4, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </Card>
-
+                  <Card withBorder>
+                    <Title order={4} mb="sm">Liter per bar</Title>
+                    <div style={{ width: '100%', height: 500 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={stats?.liters_per_bar ?? []} layout="vertical" margin={{ top: 20, left: 20, right: 40, bottom: 20 }}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis type="category" dataKey="bar" width={180} tick={{ fontSize: 12 }} />
+                          <RTooltip />
+                          <Bar dataKey="liters" fill="#f1c40f" radius={[0, 4, 4, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </Card>
                   <Card withBorder>
                     <Title order={4} mb="sm">Kollega Quiz Resultater</Title>
                     {extStats?.quiz_stats && extStats.quiz_stats.length > 0 ? (
@@ -596,11 +406,8 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                           </Box>
                         ))}
                       </Stack>
-                    ) : (
-                      <Text c="dimmed" size="sm">Ingen quiz-svar registrert på denne ruten enda.</Text>
-                    )}
+                    ) : ( <Text c="dimmed" size="sm">Ingen quiz-svar registrert på denne ruten enda.</Text> )}
                   </Card>
-
                 </Stack>
               )}
             </Tabs.Panel>
@@ -612,29 +419,13 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                   <Stack gap="xs">
                     {chat.map((m, idx) => (
                       <Card key={`${m.timestamp}-${idx}`} withBorder p="sm" style={{ background: '#f1c40f', color: 'white' }}>
-                        <Group justify="space-between">
-                          <Text fw={600}>{m.nickname}</Text>
-                          <Text size="xs">{formatTs(m.timestamp)}</Text>
-                        </Group>
-                        <Text size="sm" mt={6}>
-                          {m.message}
-                        </Text>
+                        <Group justify="space-between"><Text fw={600}>{m.nickname}</Text><Text size="xs">{formatTs(m.timestamp)}</Text></Group>
+                        <Text size="sm" mt={6}>{m.message}</Text>
                       </Card>
                     ))}
                   </Stack>
                 </Card>
-                <Textarea
-                  label="Harru no å fortelle ?"
-                  placeholder="Fyr løs"
-                  value={chatDraft}
-                  onChange={(e) => {
-                    const val = e.currentTarget?.value;
-                    if (val !== undefined) setChatDraft(val);
-                  }}
-                  autosize
-                  minRows={4}
-                  maxRows={4}
-                />
+                <Textarea label="Harru no å fortelle ?" placeholder="Fyr løs" value={chatDraft} onChange={(e) => setChatDraft(e.currentTarget.value)} autosize minRows={4} maxRows={4} />
                 <Button onClick={onPostChat}>Post comment</Button>
               </Stack>
             </Tabs.Panel>
@@ -642,67 +433,24 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
             <Tabs.Panel value="Post" pt="md">
               <Stack gap="md">
                 <Title order={4}>Registrer</Title>
-
-                <Card withBorder>
-                  <Text c="dimmed" size="sm">
-                    Current pub
-                  </Text>
-                  <Title order={3}>{state?.current_pub ?? 'Rendevous Kro'}</Title>
-                </Card>
-
+                <Card withBorder><Text c="dimmed" size="sm">Current pub</Text><Title order={3}>{state?.current_pub ?? 'Rendevous Kro'}</Title></Card>
                 <Group grow>
-                  <Button color="yellow" onClick={() => onDrink('beer', 0.5, 'Registrert: 0.5 L')}>
-                    0.5 L
-                  </Button>
-                  <Button color="yellow" onClick={() => onDrink('beer', 0.33, 'Registrert: 0.33 L')}>
-                    0.33 L
-                  </Button>
-                  <Button color="yellow" onClick={() => onDrink('wine', 0.25, 'Registrert: Vin glass')}>
-                    Vin glass
-                  </Button>
-                  <Button color="yellow" onClick={() => onDrink('shot', 0.02, 'Registrert: Shot glass')}>
-                    Shot glass
-                  </Button>
+                  <Button color="yellow" onClick={() => onDrink('beer', 0.5, 'Registrert: 0.5 L')}>0.5 L</Button>
+                  <Button color="yellow" onClick={() => onDrink('beer', 0.33, 'Registrert: 0.33 L')}>0.33 L</Button>
+                  <Button color="yellow" onClick={() => onDrink('wine', 0.25, 'Registrert: Vin glass')}>Vin glass</Button>
+                  <Button color="yellow" onClick={() => onDrink('shot', 0.02, 'Registrert: Shot glass')}>Shot glass</Button>
                 </Group>
-
                 <Group grow>
-                  <Button variant="light" onClick={() => onMood('happy', 'Humør satt til: Happy')}>
-                    Happy
-                  </Button>
-                  <Button variant="light" onClick={() => onMood('normal', 'Humør satt til: Normal')}>
-                    Normal
-                  </Button>
-                  <Button variant="light" onClick={() => onMood('dizzy', 'Humør satt til: Dizzy')}>
-                    Dizzy
-                  </Button>
-                  <Button variant="light" onClick={() => onMood('drunk', 'Humør satt til: Drunk')}>
-                    Drunk
-                  </Button>
+                  <Button variant="light" onClick={() => onMood('happy', 'Humør satt til: Happy')}>Happy</Button>
+                  <Button variant="light" onClick={() => onMood('normal', 'Humør satt til: Normal')}>Normal</Button>
+                  <Button variant="light" onClick={() => onMood('dizzy', 'Humør satt til: Dizzy')}>Dizzy</Button>
+                  <Button variant="light" onClick={() => onMood('drunk', 'Humør satt til: Drunk')}>Drunk</Button>
                 </Group>
-
                 <Card withBorder mt="md" style={{ background: '#f8f9fa' }}>
-                  <Text c="dimmed" size="sm" mb={4}>
-                    Kollega Quiz - {state?.current_pub}
-                  </Text>
-                  <Title order={5} mb="md">
-                    {currentQuizQuestion}
-                  </Title>
-                  <Group align="flex-end">
-                    <TextInput
-                      placeholder="Hvem tenker du på?"
-                      value={quizAnswer}
-                      onChange={(e) => {
-                        const val = e.currentTarget?.value
-                        if (val !== undefined) setQuizAnswer(val)
-                      }}
-                      style={{ flex: 1 }}
-                    />
-                    <Button color="blue" onClick={onQuizSubmit}>
-                      Svar
-                    </Button>
-                  </Group>
+                  <Text c="dimmed" size="sm" mb={4}>Kollega Quiz - {state?.current_pub}</Text>
+                  <Title order={5} mb="md">{currentQuizQuestion}</Title>
+                  <Group align="flex-end"><TextInput placeholder="Hvem tenker du på?" value={quizAnswer} onChange={(e) => setQuizAnswer(e.currentTarget.value)} style={{ flex: 1 }} /><Button color="blue" onClick={onQuizSubmit}>Svar</Button></Group>
                 </Card>
-
               </Stack>
             </Tabs.Panel>
 
@@ -711,152 +459,48 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                 <Title order={4}>Profile</Title>
                 <Card withBorder>
                   <Stack>
-                    <TextInput
-                      label="Nickname"
-                      value={nicknameDraft}
-                      onChange={(e) => {
-                        const val = e.currentTarget?.value;
-                        if (val !== undefined) setNicknameDraft(val);
-                      }}
-                    />
+                    <TextInput label="Nickname" value={nicknameDraft} onChange={(e) => setNicknameDraft(e.currentTarget.value)} />
                     <TextInput label="Email" value={displayEmail} disabled />
-                    <Select
-                      label="Current route"
-                      placeholder="Choose route to join"
-                      data={routes.map((r) => ({ value: r.id, label: `${r.name} (${r.pubs.length})` }))}
-                      value={routeJoinDraft}
-                      onChange={(val) => setRouteJoinDraft(val || '')}
-                      searchable
-                      clearable
-                    />
-                    <Group justify="flex-end">
-                      <Button variant="light" onClick={joinSelectedRoute}>
-                        Join route
-                      </Button>
-                      <Button color="yellow" onClick={onUpdateNickname}>
-                        Change nickname
-                      </Button>
-                    </Group>
+                    <Select label="Current route" placeholder="Choose route to join" data={routes.map((r) => ({ value: r.id, label: `${r.name} (${r.pubs.length})` }))} value={routeJoinDraft} onChange={(val) => setRouteJoinDraft(val || '')} searchable clearable />
+                    <Group justify="flex-end"><Button variant="light" onClick={joinSelectedRoute}>Join route</Button><Button color="yellow" onClick={onUpdateNickname}>Change nickname</Button></Group>
                   </Stack>
                 </Card>
-                <Card withBorder>
-                  <Text c="dimmed" size="sm">
-                    Current nickname
-                  </Text>
-                  <Title order={3}>{nickname}</Title>
-                </Card>
+                <Card withBorder><Text c="dimmed" size="sm">Current nickname</Text><Title order={3}>{nickname}</Title></Card>
               </Stack>
             </Tabs.Panel>
 
             <Tabs.Panel value="Routes" pt="md">
               <Stack gap="md">
                 <Title order={4}>All routes</Title>
-                <Text c="dimmed" size="sm">
-                  Every route with stops in order and WGS84 coordinates (lat, lng).
-                </Text>
+                <Text c="dimmed" size="sm">Every route with stops in order and WGS84 coordinates (lat, lng).</Text>
                 <Stack gap="md">
                   {routes.map((r) => (
                     <Card key={r.id} withBorder>
                       <Stack gap="xs">
-                        <Group justify="space-between" align="flex-start" wrap="wrap">
-                          <div>
-                            <Title order={5}>{r.name}</Title>
-                            <Text size="xs" c="dimmed">
-                              id: {r.id} · {r.pubs.length} pubs
-                            </Text>
-                          </div>
-                        </Group>
+                        <Group justify="space-between" align="flex-start" wrap="wrap"><div><Title order={5}>{r.name}</Title><Text size="xs" c="dimmed">id: {r.id} · {r.pubs.length} pubs</Text></div></Group>
                         <Table striped highlightOnHover withTableBorder withColumnBorders>
-                          <Table.Thead>
-                            <Table.Tr>
-                              <Table.Th style={{ width: 48 }}>#</Table.Th>
-                              <Table.Th>Pub</Table.Th>
-                              <Table.Th>Latitude</Table.Th>
-                              <Table.Th>Longitude</Table.Th>
-                            </Table.Tr>
-                          </Table.Thead>
-                          <Table.Tbody>
-                            {r.pubs.map((p, i) => (
-                              <Table.Tr key={`${r.id}-${i}-${p.name}`}>
-                                <Table.Td>{i + 1}</Table.Td>
-                                <Table.Td>{p.name}</Table.Td>
-                                <Table.Td>{p.lat.toFixed(6)}</Table.Td>
-                                <Table.Td>{p.lng.toFixed(6)}</Table.Td>
-                              </Table.Tr>
-                            ))}
-                          </Table.Tbody>
+                          <Table.Thead><Table.Tr><Table.Th style={{ width: 48 }}>#</Table.Th><Table.Th>Pub</Table.Th><Table.Th>Latitude</Table.Th><Table.Th>Longitude</Table.Th></Table.Tr></Table.Thead>
+                          <Table.Tbody>{r.pubs.map((p, i) => (<Table.Tr key={`${r.id}-${i}-${p.name}`}><Table.Td>{i + 1}</Table.Td><Table.Td>{p.name}</Table.Td><Table.Td>{p.lat.toFixed(6)}</Table.Td><Table.Td>{p.lng.toFixed(6)}</Table.Td></Table.Tr>))}</Table.Tbody>
                         </Table>
                       </Stack>
                     </Card>
                   ))}
                 </Stack>
-
                 <Title order={4}>Create a pub route</Title>
                 <Card withBorder>
                   <Stack>
-                    <TextInput
-                      label="Route name"
-                      placeholder="e.g. Grünerløkka warmup"
-                      value={routeCreate.name}
-                      onChange={(e) => {
-                        const val = e.currentTarget?.value;
-                        if (val !== undefined) setRouteCreate((p) => ({ ...p, name: val }));
-                      }}
-                    />
+                    <TextInput label="Route name" placeholder="e.g. Grünerløkka warmup" value={routeCreate.name} onChange={(e) => setRouteCreate((p) => ({ ...p, name: e.currentTarget.value }))} />
                     <Text fw={600}>Pubs (in order)</Text>
                     <Stack gap="xs">
                       {routeCreate.pubs.map((p, idx) => (
                         <Group key={idx} grow align="end">
-                          <TextInput
-                            label={`#${idx + 1} Name`}
-                            value={p.name}
-                            onChange={(e) => {
-                              const val = e.currentTarget?.value;
-                              if (val !== undefined) updateRoutePub(idx, { name: val });
-                            }}
-                          />
-                          <TextInput
-                            label="Lat"
-                            value={String(p.lat)}
-                            onChange={(e) => {
-                              const val = e.currentTarget?.value;
-                              if (val !== undefined) {
-                                const num = parseFloat(val);
-                                updateRoutePub(idx, { lat: isNaN(num) ? 0 : num });
-                              }
-                            }}
-                          />
-                          <TextInput
-                            label="Lng"
-                            value={String(p.lng)}
-                            onChange={(e) => {
-                              const val = e.currentTarget?.value;
-                              if (val !== undefined) {
-                                const num = parseFloat(val);
-                                updateRoutePub(idx, { lng: isNaN(num) ? 0 : num });
-                              }
-                            }}
-                          />
-                          <Button
-                            variant="light"
-                            color="red"
-                            onClick={() =>
-                              setRouteCreate((prev) => ({ ...prev, pubs: prev.pubs.filter((_, i) => i !== idx) || [{ name: '', lat: 0, lng: 0 }] }))
-                            }
-                          >
-                            Remove
-                          </Button>
+                          <TextInput label={`#${idx + 1} Name`} value={p.name} onChange={(e) => updateRoutePub(idx, { name: e.currentTarget.value })} />
+                          <TextInput label="Lat" value={String(p.lat)} onChange={(e) => { const num = parseFloat(e.currentTarget.value); updateRoutePub(idx, { lat: isNaN(num) ? 0 : num }); }} />
+                          <TextInput label="Lng" value={String(p.lng)} onChange={(e) => { const num = parseFloat(e.currentTarget.value); updateRoutePub(idx, { lng: isNaN(num) ? 0 : num }); }} />
+                          <Button variant="light" color="red" onClick={() => setRouteCreate((prev) => ({ ...prev, pubs: prev.pubs.filter((_, i) => i !== idx) || [{ name: '', lat: 0, lng: 0 }] }))}>Remove</Button>
                         </Group>
                       ))}
-                      <Group justify="space-between">
-                        <Button
-                          variant="light"
-                          onClick={() => setRouteCreate((prev) => ({ ...prev, pubs: [...prev.pubs, { name: '', lat: 0, lng: 0 }] }))}
-                        >
-                          Add pub
-                        </Button>
-                        <Button onClick={createRoute}>Create route</Button>
-                      </Group>
+                      <Group justify="space-between"><Button variant="light" onClick={() => setRouteCreate((prev) => ({ ...prev, pubs: [...prev.pubs, { name: '', lat: 0, lng: 0 }] }))}>Add pub</Button><Button onClick={createRoute}>Create route</Button></Group>
                     </Stack>
                   </Stack>
                 </Card>
@@ -871,84 +515,38 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
 
 function AppAuth0Mode() {
   const { user, isLoading, isAuthenticated, loginWithRedirect, logout } = useAuth0()
-
   useEffect(() => {
-    if (!isAuthenticated || !user) {
-      setApiUserIdentity(null)
-      return
-    }
-    const id = (user.email ?? user.sub ?? '').trim()
-    if (!id) {
-      setApiUserIdentity(null)
-      return
-    }
-    setApiUserIdentity(() => id)
-    return () => setApiUserIdentity(null)
+    if (!isAuthenticated || !user) { setApiUserIdentity(null); return; }
+    const id = (user.email ?? user.sub ?? '').trim(); if (!id) { setApiUserIdentity(null); return; }
+    setApiUserIdentity(() => id); return () => setApiUserIdentity(null)
   }, [isAuthenticated, user])
-
-  if (isLoading) {
-    return (
-      <Center h="100vh">
-        <Loader />
-      </Center>
-    )
-  }
-
+  if (isLoading) return <Center h="100vh"><Loader /></Center>
   if (!isAuthenticated || !user) {
     return (
       <Center h="100vh" p="md">
         <Stack align="center" gap="md" maw={420}>
           <Title order={3}>Tour de Trondheimsveien</Title>
-          <Text c="dimmed" ta="center">
-            Log in with Auth0 to join a route. Your avatar starts on the first pub and moves when you tap Neste Bar.
-          </Text>
+          <Text c="dimmed" ta="center">Log in with Auth0 to join a route. Your avatar starts on the first pub and moves when you tap Neste Bar.</Text>
           <Button onClick={() => void loginWithRedirect()}>Log in</Button>
         </Stack>
       </Center>
     )
   }
-
-  const apiIdentityKey = (user.email ?? user.sub ?? '').trim()
-  const displayEmail = user.email ?? user.sub ?? ''
-
-  return (
-    <AppCore
-      apiIdentityKey={apiIdentityKey}
-      displayEmail={displayEmail}
-      pictureUrl={user.picture}
-      headerActions={
-        <Group gap="xs" wrap="nowrap">
-          <Avatar src={user.picture ?? undefined} alt="" size="sm" radius="xl" />
-          <Text size="sm" lineClamp={1} maw={140} visibleFrom="sm">
-            {user.name ?? user.email ?? user.sub}
-          </Text>
-          <Button size="xs" variant="light" onClick={() => void logout({ logoutParams: { returnTo: window.location.origin } })}>
-            Log out
-          </Button>
-        </Group>
-      }
-    />
-  )
+  const apiIdentityKey = (user.email ?? user.sub ?? '').trim(); const displayEmail = user.email ?? user.sub ?? ''
+  return <AppCore apiIdentityKey={apiIdentityKey} displayEmail={displayEmail} pictureUrl={user.picture} headerActions={<Group gap="xs" wrap="nowrap"><Avatar src={user.picture ?? undefined} alt="" size="sm" radius="xl" /><Text size="sm" lineClamp={1} maw={140} visibleFrom="sm">{user.name ?? user.email ?? user.sub}</Text><Button size="xs" variant="light" onClick={() => void logout({ logoutParams: { returnTo: window.location.origin } })}>Log out</Button></Group>} />
 }
 
 function AppDemoMode() {
   const [email, setEmail] = useState(() => getUserEmail())
-
   useEffect(() => {
-    const resolved = (email || '').trim() || DEMO_FALLBACK_EMAIL
-    setApiUserIdentity(() => resolved)
-    return () => setApiUserIdentity(null)
+    const resolved = (email || '').trim() || DEMO_FALLBACK_EMAIL;
+    setApiUserIdentity(() => resolved); return () => setApiUserIdentity(null)
   }, [email])
-
   function applyDemoEmail() {
-    const next = (email || '').trim()
-    if (!next) return
-    setUserEmail(next)
-    setEmail(next)
+    const next = (email || '').trim(); if (!next) return;
+    setUserEmail(next); setEmail(next);
   }
-
   const key = (email || '').trim() || DEMO_FALLBACK_EMAIL
-
   return (
     <AppCore
       apiIdentityKey={key}
@@ -956,19 +554,17 @@ function AppDemoMode() {
       pictureUrl={null}
       headerActions={
         <Group gap="xs">
-          <TextInput
-            value={email || ''}
-            onChange={(e) => {
-              const val = e.currentTarget?.value;
-              if (val !== undefined) setEmail(val);
-            }}
-            placeholder="X-User-Email (demo)"
+          <Select
+            placeholder="Select user"
             size="xs"
             w={220}
+            data={DEMO_USERS.map(u => ({ value: u, label: u }))}
+            value={email}
+            onChange={(val) => setEmail(val || '')}
+            searchable
+            clearable
           />
-          <Button size="xs" variant="light" onClick={applyDemoEmail}>
-            Use user
-          </Button>
+          <Button size="xs" variant="light" onClick={applyDemoEmail}>Use user</Button>
         </Group>
       }
     />
