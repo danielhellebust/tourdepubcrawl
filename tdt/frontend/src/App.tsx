@@ -78,6 +78,13 @@ type QuizStat = {
   answers: { answer: string; count: number }[]
 }
 
+// Extension to help render all users on the map
+type UserMapState = {
+  nickname: string;
+  current_pub: string;
+  picture_url?: string;
+};
+
 function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: AppCoreProps) {
   const [activeTab, setActiveTab] = useState<string | null>('Kart')
 
@@ -112,8 +119,6 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
   // State to hold the parsed GPX track points
   const [golarPolyline, setGolarPolyline] = useState<[number, number][]>([])
 
-  const userMarkerIcon = useMemo(() => createAvatarDivIcon(pictureUrl ?? undefined), [pictureUrl])
-
   const currentPubIdx = useMemo(() => {
     if (!route || !state || !state.current_pub) return 0
     const idx = route.pubs.findIndex((p) => p.name === state.current_pub)
@@ -147,6 +152,14 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
       setGolarPolyline([])
     }
   }, [currentRouteName])
+
+  // Polling mechanism to keep the map and stats updated for all users
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshStateAndStats()
+    }, 30000); // Sync every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     let mounted = true
@@ -190,11 +203,14 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
   const progressValue = useMemo(() => PROGRESS_STEPS[Math.min(currentPubIdx, PROGRESS_STEPS.length - 1)] ?? 10, [currentPubIdx])
 
   async function refreshStateAndStats() {
-    const [s, st] = await Promise.all([api.state(), api.stats()])
+    const [s, st, c] = await Promise.all([api.state(), api.stats(), api.chat()])
     setState(s)
     setStats(st)
-    setPilsCredit(s.pils_pilot_credit)
-    setMoodCredit(s.mood_credit)
+    setChat(c.messages || [])
+    if (s) {
+      setPilsCredit(s.pils_pilot_credit)
+      setMoodCredit(s.mood_credit)
+    }
   }
 
   async function onNext() {
@@ -212,8 +228,7 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
     if (!message) return
     await api.chatPost(message)
     setChatDraft('')
-    const c = await api.chat()
-    setChat(c.messages || [])
+    await refreshStateAndStats()
   }
 
   async function onUpdateNickname() {
@@ -284,9 +299,12 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
     setRouteJoinDraft(me.route_id || '')
     setRoute(r)
     setState(s)
-    setPilsCredit(s.pils_pilot_credit)
-    setMoodCredit(s.mood_credit)
+    if (s) {
+        setPilsCredit(s.pils_pilot_credit)
+        setMoodCredit(s.mood_credit)
+    }
     notifications.show({ color: 'green', title: 'Route', message: 'Joined route' })
+    await refreshStateAndStats()
   }
 
   function updateRoutePub(idx: number, patch: Partial<Pub>) {
@@ -325,7 +343,7 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
   const finalAlert = pubsRemaining.length === 1 && pubsRemaining[0]?.name === 'Schouskjelleren Mikrobryggeri'
 
   const currentQuizQuestion = state?.current_pub ? QUIZ_QUESTIONS[state.current_pub] || DEFAULT_QUESTION : DEFAULT_QUESTION
-  const extStats = stats as (StatsResponse & { quiz_stats?: QuizStat[] }) | null
+  const extStats = stats as (StatsResponse & { quiz_stats?: QuizStat[], users?: UserMapState[] }) | null
 
   return (
     <AppShell header={{ height: 64 }} padding="md">
@@ -408,11 +426,28 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                             <Popup>{p.name}</Popup>
                           </Marker>
                         ))}
-                        {state && route && (
-                          <Marker position={currentCenter} icon={userMarkerIcon}>
-                            <Popup>{nickname}</Popup>
-                          </Marker>
-                        )}
+
+                        {/* Rendering ALL users from the stats object */}
+                        {extStats?.users?.map((u) => {
+                            const userPub = route?.pubs.find(p => p.name === u.current_pub);
+                            if (!userPub) return null;
+
+                            return (
+                                <Marker
+                                    key={u.nickname}
+                                    position={pubLatLng(userPub)}
+                                    icon={createAvatarDivIcon(u.picture_url)}
+                                >
+                                    <Popup>
+                                        <Stack gap={4} align="center">
+                                            <Avatar src={u.picture_url} size="sm" />
+                                            <Text size="xs" fw={700}>{u.nickname}</Text>
+                                            <Text size="xs">At: {u.current_pub}</Text>
+                                        </Stack>
+                                    </Popup>
+                                </Marker>
+                            );
+                        })}
                       </MapContainer>
                     </div>
                   </Card>
@@ -485,7 +520,6 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                     </div>
                   </Card>
 
-                  {/* FIXED: Quiz Stats Section will always render the card, falling back to a message if empty */}
                   <Card withBorder>
                     <Title order={4} mb="sm">Kollega Quiz Resultater</Title>
                     {extStats?.quiz_stats && extStats.quiz_stats.length > 0 ? (
