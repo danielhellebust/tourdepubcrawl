@@ -179,8 +179,10 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
           if (!mounted) return
           setRoute(r)
           setState(s)
-          setPilsCredit(s.pils_pilot_credit)
-          setMoodCredit(s.mood_credit)
+          if (s) {
+            setPilsCredit(s.pils_pilot_credit)
+            setMoodCredit(s.mood_credit)
+          }
         } else {
           setRoute(null)
           setState(null)
@@ -427,22 +429,37 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                           </Marker>
                         ))}
 
-                        {/* Rendering ALL users from the stats object */}
+                        {/* Rendering ALL users with jitter and permanent nicknames */}
                         {extStats?.users?.map((u) => {
                             const userPub = route?.pubs.find(p => p.name === u.current_pub);
                             if (!userPub) return null;
 
+                            // Calculate small random jitter (approx 5-10 meters) to avoid perfect overlapping
+                            const jitterLat = (Math.random() - 0.5) * 0.00015;
+                            const jitterLng = (Math.random() - 0.5) * 0.00015;
+                            const jitteredPos: [number, number] = [userPub.lat + jitterLat, userPub.lng + jitterLng];
+
                             return (
                                 <Marker
                                     key={u.nickname}
-                                    position={pubLatLng(userPub)}
+                                    position={jitteredPos}
                                     icon={createAvatarDivIcon(u.picture_url)}
                                 >
+                                    {/* ALWAYS SHOW NICKNAME using permanent Tooltip */}
+                                    <Tooltip
+                                        permanent
+                                        direction="top"
+                                        offset={[0, -10]}
+                                        opacity={0.9}
+                                    >
+                                        <Text size="xs" fw={700}>{u.nickname}</Text>
+                                    </Tooltip>
+
                                     <Popup>
                                         <Stack gap={4} align="center">
                                             <Avatar src={u.picture_url} size="sm" />
                                             <Text size="xs" fw={700}>{u.nickname}</Text>
-                                            <Text size="xs">At: {u.current_pub}</Text>
+                                            <Text size="xs">Sted: {u.current_pub}</Text>
                                         </Stack>
                                     </Popup>
                                 </Marker>
