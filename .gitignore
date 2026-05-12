@@ -1,0 +1,21 @@
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python
+**/__pycache__/
+*.pyc
+
+# Node
+**/node_modules/
+**/dist/
+**/build/
+
+# IDEs
+.idea/
+.vscode/
+
+# Secrets
+.env

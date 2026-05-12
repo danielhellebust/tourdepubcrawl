@@ -1,0 +1,16 @@
+services:
+  backend:
+    build: ./tdt/backend
+    ports:
+      - "8000:8000"
+    # No env_file needed here if you prefer to pass them via terminal
+    # or if your app has defaults for local dev.
+    volumes:
+      - ./tdt/backend:/app
+
+  frontend:
+    build: ./tdt/frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
