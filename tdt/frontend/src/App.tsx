@@ -80,6 +80,19 @@ const QUIZ_QUESTIONS: Record<string, string> = {
   'Café Fiasco': 'Who is most likely to be the actual reason this pub crawl turns into a complete fiasco?'
 }
 
+// Define types globally to ensure they are available to the whole file
+type QuizStat = {
+  pub: string
+  question: string
+  answers: { answer: string; count: number }[]
+}
+
+type UserMapState = {
+  nickname: string;
+  current_pub: string;
+  picture_url?: string;
+};
+
 function pubLatLng(p: Pub): [number, number] { return [p.lat, p.lng]; }
 const DEMO_FALLBACK_EMAIL = 'demo@tdt.local'
 
@@ -104,8 +117,6 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
   const [routeJoinDraft, setRouteJoinDraft] = useState<string>('')
   const [quizAnswer, setQuizAnswer] = useState('')
   const [golarPolyline, setGolarPolyline] = useState<[number, number][]>([])
-
-  // Onboarding State
   const [onboardingOpened, setOnboardingOpened] = useState(false)
 
   const currentPubIdx = useMemo(() => {
@@ -114,6 +125,41 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
   }, [route, state])
 
   const currentRouteName = useMemo(() => routes.find((r) => r.id === routeId)?.name || '', [routes, routeId])
+
+  async function refreshStateAndStats() {
+    const [s, st, c] = await Promise.all([api.state(), api.stats(), api.chat()])
+    setState(s); setStats(st); setChat(c.messages || [])
+  }
+
+  const onNext = async () => { await api.next(); await refreshStateAndStats(); }
+  const onReset = async () => { await api.reset(); await refreshStateAndStats(); }
+  const onPostChat = async () => {
+    if (!chatDraft.trim()) return;
+    await api.chatPost(chatDraft.trim()); setChatDraft(''); await refreshStateAndStats();
+  }
+  const onDrink = async (type: 'beer' | 'wine' | 'shot', volume: number, label: string) => {
+    await api.drink(type, volume); notifications.show({ color: 'green', title: 'Registrert', message: label }); await refreshStateAndStats();
+  }
+
+  const handleOnboarding = async () => {
+    if (!nicknameDraft.trim() || !routeJoinDraft) {
+        notifications.show({ color: 'red', message: 'Please set a nickname and pick a route!' });
+        return;
+    }
+    try {
+        await api.meUpdate(nicknameDraft.trim());
+        await api.routesJoin({ route_id: routeJoinDraft });
+        const [me, r, s] = await Promise.all([api.me(), api.route(), api.state()]);
+        setNickname(me.nickname || '');
+        setRouteId(me.route_id || '');
+        setRoute(r);
+        setState(s);
+        setOnboardingOpened(false);
+        notifications.show({ color: 'green', title: 'Welcome!', message: 'You are ready to go!' });
+    } catch (e) {
+        notifications.show({ color: 'red', message: 'Failed to initialize profile' });
+    }
+  }
 
   useEffect(() => {
     const interval = setInterval(() => { refreshStateAndStats() }, 30000);
@@ -133,7 +179,6 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
         setChat(c.messages || [])
         setStats(st)
 
-        // Trigger onboarding if user is new or hasn't joined a route
         if (!me.route_id || !me.nickname || me.nickname === me.email) {
             setOnboardingOpened(true)
         }
@@ -154,51 +199,10 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
     return pubLatLng(pub)
   }, [route, state])
 
-  async function refreshStateAndStats() {
-    const [s, st, c] = await Promise.all([api.state(), api.stats(), api.chat()])
-    setState(s); setStats(st); setChat(c.messages || [])
-  }
-
-  const onNext = async () => { await api.next(); await refreshStateAndStats(); }
-  const onReset = async () => { await api.reset(); await refreshStateAndStats(); }
-  const onPostChat = async () => {
-    if (!chatDraft.trim()) return;
-    await api.chatPost(chatDraft.trim()); setChatDraft(''); await refreshStateAndStats();
-  }
-
-  const joinSelectedRoute = async () => {
-    if (!routeJoinDraft) return;
-    await api.routesJoin({ route_id: routeJoinDraft });
-    const [me, r, s] = await Promise.all([api.me(), api.route(), api.state()]);
-    setRouteId(me.route_id || ''); setRoute(r); setState(s);
-    await refreshStateAndStats();
-  }
-
-  const handleOnboarding = async () => {
-      if (!nicknameDraft.trim() || !routeJoinDraft) {
-          notifications.show({ color: 'red', message: 'Please set a nickname and pick a route!' });
-          return;
-      }
-      try {
-          await api.meUpdate(nicknameDraft.trim());
-          await api.routesJoin({ route_id: routeJoinDraft });
-          const [me, r, s] = await Promise.all([api.me(), api.route(), api.state()]);
-          setNickname(me.nickname || '');
-          setRouteId(me.route_id || '');
-          setRoute(r);
-          setState(s);
-          setOnboardingOpened(false);
-          notifications.show({ color: 'green', title: 'Welcome!', message: 'You are ready to go!' });
-      } catch (e) {
-          notifications.show({ color: 'red', message: 'Failed to initialize profile' });
-      }
-  }
-
   const extStats = stats as (StatsResponse & { quiz_stats?: QuizStat[], users?: UserMapState[] }) | null
 
   return (
     <AppShell header={{ height: 50 }} padding="xs">
-      {/* Onboarding Modal */}
       <Modal
         opened={onboardingOpened}
         onClose={() => {}}
@@ -277,7 +281,7 @@ function AppCore({ apiIdentityKey, displayEmail, pictureUrl, headerActions }: Ap
                 <Progress value={PROGRESS_STEPS[currentPubIdx] || 10} color="green" radius="xl" size="lg" />
                 <Group grow gap="xs">
                   <Button onClick={onNext} color="green">Next Bar</Button>
-                  <Button variant="light" onClick={() => notifications.show({ title: 'Vits', message: JOKES_MILD[Math.floor(Math.random() * JOKES_MILD.length)] })}>Vits</Button>
+                  <Button variant="light" size="md" onClick={() => notifications.show({ title: 'Vits', message: JOKES_MILD[Math.floor(Math.random() * JOKES_MILD.length)] })}>Vits</Button>
                 </Group>
               </Stack>
             </Tabs.Panel>
