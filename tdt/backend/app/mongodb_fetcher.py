@@ -223,7 +223,7 @@ class MongoStore:
         return {"status": "ok"}
 
     def get_stats(self, email: str) -> dict:
-        """Consolidates total liters, user count, beer KOM, and liters per bar for the user's current route."""
+        """Consolidates liters, user count, beer KOM, quiz stats, and active user locations for the current route."""
         user = self.get_or_create_user(email)
         route_id = user.route_id
 
@@ -234,7 +234,8 @@ class MongoStore:
                 "beer_kom": "Anonym",
                 "total_liters": 0.0,
                 "liters_per_bar": [],
-                "quiz_stats": []
+                "quiz_stats": [],
+                "users": []
             }
 
         # 1. Base list of bars strictly on this route
@@ -275,32 +276,26 @@ class MongoStore:
         k_result = list(self.users_coll.aggregate(kom_pipeline))
         beer_kom = k_result[0]["nickname"] if k_result else "Anonym"
 
-        # 4. Count total users active on this route
-        user_count = self.users_coll.count_documents({"route_id": route_id})
+        # 4. Fetch list of all users active on this route for the map markers
+        active_users_cursor = self.users_coll.find({"route_id": route_id})
+        user_list = []
+        for u in active_users_cursor:
+            user_list.append({
+                "nickname": u.get("nickname", "Anonym"),
+                "current_pub": u.get("current_pub"),
+                "picture_url": u.get("picture_url")  # Ensure your Auth0 sync saves this to the DB
+            })
 
-        # --- New Quiz Aggregation ---
-        # Filters quiz responses to only include the pubs active in this route
+        # --- Quiz Aggregation ---
         quiz_pipeline = [
             {"$match": {"pub": {"$in": [p.name for p in route.pubs]}}},
             {"$group": {
-                "_id": {
-                    "pub": "$pub",
-                    "question": "$question",
-                    "answer": "$answer"
-                },
+                "_id": {"pub": "$pub", "question": "$question", "answer": "$answer"},
                 "count": {"$sum": 1}
             }},
             {"$group": {
-                "_id": {
-                    "pub": "$_id.pub",
-                    "question": "$_id.question"
-                },
-                "answers": {
-                    "$push": {
-                        "answer": "$_id.answer",
-                        "count": "$count"
-                    }
-                }
+                "_id": {"pub": "$_id.pub", "question": "$_id.question"},
+                "answers": {"$push": {"answer": "$_id.answer", "count": "$count"}}
             }},
             {"$project": {
                 "_id": 0,
@@ -311,16 +306,16 @@ class MongoStore:
         ]
 
         quiz_stats = list(self.quiz_coll.aggregate(quiz_pipeline))
-        # Sort answers inside each question by highest count
         for q in quiz_stats:
             q["answers"] = sorted(q["answers"], key=lambda x: x["count"], reverse=True)
 
         return {
-            "user_count": user_count,
+            "user_count": len(user_list),
             "beer_kom": beer_kom,
             "total_liters": round(total_liters, 2),
             "liters_per_bar": liters_per_bar,
-            "quiz_stats": quiz_stats
+            "quiz_stats": quiz_stats,
+            "users": user_list  # New key for frontend map rendering
         }
 
     def pils_pilot(self, email: str, query: str) -> dict:
