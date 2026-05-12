@@ -15,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8080
 
 # Run the dev server or serve build (adjust based on your framework)
 CMD ["npm", "start"]
