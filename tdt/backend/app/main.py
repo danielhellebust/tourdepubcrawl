@@ -46,7 +46,7 @@ app = FastAPI(title="TDT BFF", version="0.1.0")
 
 allowed_origins = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:5173,http://localhost:5174",
+    "http://localhost:5173,http://localhost:5174,https://tourdepubcrawl-46150979625.europe-west1.run.app",
 ).split(",")
 
 app.add_middleware(
