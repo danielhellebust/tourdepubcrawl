@@ -65,11 +65,21 @@ class MongoStore:
     # --- Core Methods ---
 
     def get_or_create_user(self, email: str) -> User:
-        doc = self.users_coll.find_one({"email": email})
+        # Look up by the primary key (_id) for maximum efficiency
+        doc = self.users_coll.find_one({"_id": email})
+
         if not doc:
             user = self._default_user(email)
-            self.users_coll.insert_one(self._to_dict(user))
+            user_data = self._to_dict(user)
+
+            # Explicitly set the primary key to the email address
+            user_data["_id"] = email
+
+            self.users_coll.insert_one(user_data)
             return user
+
+        # Since we use _id as email, we don't need to strip it if
+        # your User model expects 'email' and not '_id'
         return User(**self._strip_id(doc))
 
     def set_nickname(self, email: str, nickname: str) -> User:
