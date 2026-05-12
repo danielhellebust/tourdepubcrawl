@@ -18,4 +18,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Run the app
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npm run dev -- --port $PORT --host 0.0.0.0"]
